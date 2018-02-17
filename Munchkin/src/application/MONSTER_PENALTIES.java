@@ -1,0 +1,9 @@
+package application;
+
+public enum MONSTER_PENALTIES {
+	LOSE_ONE_LEVEL,
+	LOSE_TWO_LEVELS,
+	LOSE_BIGGEST_ITEM,
+	LOSE_TWO_ITEMS,
+	DEATH
+}
