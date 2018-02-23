@@ -7,6 +7,17 @@ import javafx.scene.layout.BorderPane;
 
 
 public class Main extends Application {
+	
+	//defining the players
+	private static Character playerOne;
+	private static Character playerTwo;
+	private static Character playerThree;
+	private static Character playerFour;
+	//array to hold all the players
+	private static Object[] players = {playerOne, playerTwo, playerThree, playerFour};
+	
+	static int nextPlayer = 0;
+	static int highestLevel = 0;
 	@Override
 	public void start(Stage primaryStage) {
 		try {
