@@ -11,4 +11,9 @@ public class TreasureCard extends Card{
 	public int getCombatAdvantage(){return combatAdvantage;}
 	public void setGoldPieces(int newGoldPieces){goldPieces = newGoldPieces;}
 	public void setCombatAdvantage(int newCombatAdvantage){combatAdvantage = newCombatAdvantage;}
+	
+	public TreasureCard(){
+		goldPieces = Randomizer.RollDice(301) + 99;
+		combatAdvantage = Randomizer.RollDice(5);
+	}
 }

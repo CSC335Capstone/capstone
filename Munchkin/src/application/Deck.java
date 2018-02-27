@@ -15,7 +15,7 @@ public class Deck {
 	
 	// Draw a card from the deck.
 	public Card draw(){
-		Card drawnCard = new Card();
+		Card drawnCard = null;
 		// stub for draw function
 		return drawnCard;
 	}

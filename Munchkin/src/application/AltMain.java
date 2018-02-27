@@ -66,6 +66,7 @@ public class AltMain {
 		// the monster as well as the vulnerability of the monster.
 		//This method will also call the card method in the case the player has to 
 		// draw a new card.
+		
 	}
 	
 	private static void curseCard() {

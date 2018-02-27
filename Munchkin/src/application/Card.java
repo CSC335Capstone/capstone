@@ -1,6 +1,6 @@
 package application;
 
-public class Card {
+public abstract class Card {
 	
 	// Properties
 	private String imageFile;
@@ -8,4 +8,5 @@ public class Card {
 	// Methods
 	public String getImageFile(){return imageFile;}
 	public void setImageFile(String imageFile){this.imageFile = imageFile;}
+	
 }
