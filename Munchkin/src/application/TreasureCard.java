@@ -15,5 +15,6 @@ public class TreasureCard extends Card{
 	public TreasureCard(){
 		goldPieces = Randomizer.RollDice(301) + 99;
 		combatAdvantage = Randomizer.RollDice(5);
+		super.setImageFile(IMAGE_PATH + "genericTreasure.jpg");
 	}
 }

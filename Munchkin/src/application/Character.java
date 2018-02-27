@@ -51,9 +51,7 @@ public class Character {
 		
 	}
 	public int rollDie(){
-		Random oneDie = new Random();
-		
-		return oneDie.nextInt(6);
+		return Randomizer.RollDice(6);
 	}
 	public void buyLevel(){
 		// Code for buying a level

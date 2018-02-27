@@ -14,11 +14,14 @@ public class RaceCard extends Card{
 		switch(switchValue){
 		case 1:
 			type = RACES.DWARF;
+			super.setImageFile(IMAGE_PATH + "dwarf.jpg");
 			break;
 		case 2:
 			type = RACES.ELF;
+			super.setImageFile(IMAGE_PATH + "elf.jpg");
 			break;
 		case 3:
+			super.setImageFile(IMAGE_PATH + "halfling.jpg");
 			type = RACES.HALFLING;
 			break;
 		}

@@ -14,12 +14,15 @@ public class ClassCard extends Card{
 		switch(switchValue){
 		case 1:
 			type = CLASSES.CLERIC;
+			super.setImageFile(IMAGE_PATH + "cleric.jpg");
 			break;
 		case 2:
 			type = CLASSES.WARRIOR;
+			super.setImageFile(IMAGE_PATH + "warrior.jpg");
 			break;
 		case 3:
 			type = CLASSES.WIZARD;
+			super.setImageFile(IMAGE_PATH + "Wizard.jpg");
 			break;
 		}
 	}
