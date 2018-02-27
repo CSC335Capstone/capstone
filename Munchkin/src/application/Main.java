@@ -57,7 +57,7 @@ public class Main extends Application {
     		}
     	});
 		
-		 
+		
 		
 		cardView.setFitHeight(CARD_HEIGHT);
 		cardView.setFitWidth(CARD_WIDTH);
