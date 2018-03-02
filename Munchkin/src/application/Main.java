@@ -1,14 +1,18 @@
 package application;
 
 import javafx.application.Application;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox; // Needed for HBox object
 import javafx.scene.paint.Color;
@@ -60,6 +64,19 @@ public class Main extends Application {
 	static int nextPlayer = 0;
 	static int highestLevel = 0;
 	static int goldPieces = 0;
+	static boolean endTurn = false;
+	static int doorClicks = 0;
+	
+	private static String WELCOME_MESSAGE = "Welcome to Munchkin! You may play as many treasure cards as you like.  You may only have one race" + 
+									" or class at a time so if you play another it will replace the existing one.  Play or draw a monster to fight.";
+	private static String MONSTER_MESSAGE = "Monster drawn!";
+	private static String DEFEAT_MONSTER_MESSAGE = "Congratulations! You have defeated the monster and gained a level and its treasure!";
+	private static String WIN_MESSAGE = "YOU HAVE WON!!";
+	private static String ESCAPE_MESSAGE = "You escaped with a roll of ";
+	private static String NEW_TURN_MESSAGE = "New Turn.  Play some cards or Kick the Door!";
+	private static String GOLD_MESSAGE = "Gold Pieces: ";
+	private static String LEVEL_MESSAGE = "Level: ";
+	private static String TOO_MANY_CARDS_MESSAGE = "You have too many cards.  Please discard or play cards until you have ";
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -68,15 +85,15 @@ public class Main extends Application {
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(SPACING);
 		grid.setVgap(SPACING);
-		grid.setPadding(new Insets(25, 25, 25, 25)); // Top Right Bottom Left (TRouBLe)
+		grid.setPadding(new Insets(25, 25, 25, 25)); // Top Right Bottom Left 
 		
 		primaryStage.setTitle("Munchkin");
 		playerOne = new Character();
 		
 		labelsBox = createLabelsBox();
-		levelLabel = new Label("Level: " + playerOne.getLevel());
-		goldLabel = new Label("Gold Pieces: " + playerOne.getGold());
-		feedbackLabel = new Label("Welcome to Munchkin!");
+		levelLabel = new Label(LEVEL_MESSAGE + playerOne.getLevel());
+		goldLabel = new Label(GOLD_MESSAGE + playerOne.getGold());
+		feedbackLabel = new Label(WELCOME_MESSAGE);
 		
 		labelsBox.getChildren().addAll(levelLabel, goldLabel, feedbackLabel);
 		
@@ -84,44 +101,30 @@ public class Main extends Application {
 		topBox.getChildren().addAll(labelsBox);
 		grid.add(topBox, 0, 0);
 		
+		ImageView imageView = new ImageView();
 		playBox = createCardsBox();
+		playBox.getChildren().add(0, imageView);
 		grid.add(playBox, 0, 1);
 		
 		handBox = createCardsBox();
 		grid.add(handBox, 0, 2);
 		
+		
 		drawButton = new Button("Kick Door");
 		drawButton.setOnAction((ActionEvent ae) -> {
 			if(drawButton.getText() == "Kick Door"){
-				CARD_TYPE cardType;
-				Card showMeACard;	
-				showMeACard = dealDoorDeckCard();
-				cardType = showMeACard.getCardType();
-				
-				if(cardType == CARD_TYPE.MONSTER){
-					if(playerOne.getCurrentMonster() == null){
-					addToTopBox(showMeACard);
-					playerOne.setCurrentMonster(showMeACard);
-					monsterCard(showMeACard);
-					}
-				} else if(cardType == CARD_TYPE.CURSE){
-					//Apply CURSE - code below will change
-					addToHand(showMeACard);
-				} else {
-					addToHand(showMeACard);
-				}
-				drawButton.setDisable(true);
+				kickDoor();
 			}
 			else if(drawButton.getText() == "Run"){
-				
+				run();
 			}
 			else if(drawButton.getText() == "Fight!"){
+				fight();
 				
 			}
 			else if(drawButton.getText() == "End Turn"){
-				//End turn code
+				endTurn();
 			}
-			
 		});
     	
 		
@@ -134,6 +137,114 @@ public class Main extends Application {
         
         // Deal starting cards to player.
         setupGame();
+	}
+	public static void endTurn(){
+		int maxSize = 5;
+		if(playerOne.getRace() != null){
+			RACE_ABILITY[] playerAbilities = playerOne.getRace().getAbilities(); 
+			for(RACE_ABILITY a : playerAbilities){
+				if(a == RACE_ABILITY.CARRY_EXTRA_CARD){
+					maxSize = 6;
+				}
+			}
+		}
+		if(playerOne.getCards().size() <= maxSize){
+			doorClicks = 0;
+			endTurn = false;
+			updateFeedbackLabel(NEW_TURN_MESSAGE);
+			drawButton.setText("Kick Door");
+		} else {
+			updateFeedbackLabel(TOO_MANY_CARDS_MESSAGE + maxSize);
+		}
+		
+	}
+	public static void fight(){
+		
+		MonsterCard defeatMonster = (MonsterCard)playerOne.getCurrentMonster();
+		int treasure = defeatMonster.getTreasureCards();
+		
+		updateFeedbackLabel(DEFEAT_MONSTER_MESSAGE + " " + Integer.toString(treasure)+ " treasure cards.");
+		playerOne.buyLevel();
+		updateLevel();
+		removeFromTopBox(playerOne.getCurrentMonster());
+		playerOne.setCurrentMonster(null);
+		if(playerOne.getLevel() >= 10){
+			updateFeedbackLabel(WIN_MESSAGE);
+			grid.setDisable(true);
+		}
+		drawButton.setText("End Turn");
+		endTurn = true;
+	}
+	public static void run(){
+		
+		int rollTarget = 5;
+		boolean rollAgain = false;
+		if(playerOne.getClass() != null){
+			CLASS_ABILITY[] playerClassAbilities = playerOne.getCharacterClass().getAbilities(); 
+			for(CLASS_ABILITY a : playerClassAbilities){
+				if(a == CLASS_ABILITY.DISCARD_RUN_AWAY){
+					
+				}
+			}
+			RACE_ABILITY[] playerRaceAbilities = playerOne.getRace().getAbilities(); 
+			for(RACE_ABILITY a : playerRaceAbilities){
+				if(a == RACE_ABILITY.EASIER_RUN_AWAY){
+					rollTarget = 4;
+				}
+				if(a == RACE_ABILITY.EXTRA_RUN_AWAY){
+					rollAgain = true;
+				}
+			}
+		}
+		int roll = playerOne.rollDie();
+		if(rollAgain && roll >= rollTarget){
+			updateFeedbackLabel(ESCAPE_MESSAGE + roll);
+		} else {
+			roll = playerOne.rollDie();
+			if( roll >= rollTarget){
+				String update = "ESCAPE_MESSAGE + roll";
+				if(rollAgain){
+					update += " on second roll!";
+				}
+				updateFeedbackLabel(update);
+			} else {
+				doBadStuff(roll);
+			}	
+		}
+		removeFromTopBox(playerOne.getCurrentMonster());
+		playerOne.setCurrentMonster(null);
+		
+			
+		drawButton.setText("End Turn");
+		endTurn = true;
+	}
+	public static void kickDoor(){
+		
+		CARD_TYPE cardType;
+		Card showMeACard;	
+		showMeACard = dealDoorDeckCard();
+		cardType = showMeACard.getCardType();
+		doorClicks++;
+		if(doorClicks > 1){
+			drawButton.setText("End Turn");
+			endTurn = true;
+		}
+		if(cardType == CARD_TYPE.MONSTER){
+			if(playerOne.getCurrentMonster() == null){
+			addToTopBox(showMeACard);
+			playerOne.setCurrentMonster(showMeACard);
+			monsterCard(showMeACard);
+			
+			}
+		} else if(cardType == CARD_TYPE.CURSE){
+			//Apply CURSE - code below will change
+			addToHand(showMeACard);
+			playerOne.addCard(showMeACard);
+		} else {
+			addToHand(showMeACard);
+			playerOne.addCard(showMeACard);
+		}
+		
 	}
 	
 	public static void main(String[] args) {
@@ -157,6 +268,68 @@ public class Main extends Application {
         	playerOne.addCard(addCard);
         }
 	}
+	private static void doBadStuff(int roll){
+		MonsterCard badCard = (MonsterCard)playerOne.getCurrentMonster();
+		switch(badCard.getPenalty()){
+		case LOSE_ONE_LEVEL:
+			if(playerOne.getLevel()> 1){
+				playerOne.setLevel(playerOne.getLevel() - 1);
+				updateLevel();
+				updateFeedbackLabel("You rolled a " + roll + " You lost a level!");
+			} else {
+				updateFeedbackLabel("You rolled a " + roll + " You can't lose a level.");
+			}
+			
+			break;
+		case LOSE_TWO_LEVELS:
+			if(playerOne.getLevel() > 2){
+			playerOne.setLevel(playerOne.getLevel() - 2);
+			updateLevel();
+			updateFeedbackLabel("You rolled a " + roll + " You lost 2 levels!");
+			} else {
+			updateFeedbackLabel("You rolled a " + roll + " You can't lose 2 levels");
+			}
+			break;
+		case LOSE_BIGGEST_ITEM:
+			if(playerOne.getPlayedCards().size() > 0){
+				Card removeCard = findHighestValueCard();
+				Label removeLabel = findHighestValueTreasure();
+				playerOne.discardPlayCard(removeCard);
+				removeFromPlay(removeLabel);
+				updateFeedbackLabel("You rolled a " + roll + " Biggest item removed!");
+			}
+		case LOSE_TWO_ITEMS:
+			if(playerOne.getPlayedCards().size()>0){
+				updateFeedbackLabel("You rolled a " + roll + " One item removed!");
+				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+				ObservableList<Node> elements = playBox.getChildren();
+				for (int i = 0; i < elements.size(); i++) {
+					if (elements.get(i).getUserData() != null) {
+						removeFromPlay((Label)elements.get(i));
+					}
+				}
+			} else {
+				updateFeedbackLabel("You rolled a " + roll + " No items to lose!");
+			}
+			if(playerOne.getPlayedCards().size()>0){
+				updateFeedbackLabel("You rolled a " + roll + " Two items removed!");
+				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+				ObservableList<Node> elements = playBox.getChildren();
+				for (int i = 0; i < elements.size(); i++) {
+					if (elements.get(i).getUserData() != null) {
+						removeFromPlay((Label)elements.get(i));
+					}
+				}
+			}
+			
+			break;
+		case DEATH:
+			updateFeedbackLabel("You rolled a " + roll + " YOU DIED!!! GAME OVER!!");
+			grid.setDisable(true);
+			break;
+		}
+		
+	}
 	
 	private static void monsterCard(Card card) {
 		//monster card will have the level of the monster as well as the treasure
@@ -165,13 +338,18 @@ public class Main extends Application {
 		//This method will also call the card method in the case the player has to 
 		// draw a new card.
 		MonsterCard fightCard = (MonsterCard)card;
-		
-		if(fightCard.getLevel() >= playerOne.combatStrength()){
+		int monster = fightCard.getLevel();
+		int player = playerOne.combatStrength();
+		updateFeedbackLabel(MONSTER_MESSAGE + " Your Strength: " + Integer.toString(player) + " Monster Strength: " + Integer.toString(monster));
+		if(monster >= player){
+			
+			
 			drawButton.setText("Run");
 		}
 		else
 		{
 			drawButton.setText("Fight!");
+			
 		}	
 	}
 	
@@ -209,105 +387,130 @@ public class Main extends Application {
 		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
 		Button cardButton = new Button();
 		cardButton.setGraphic(new ImageView(cardImage));
+		
 	
 		cardButton.setContentDisplay(ContentDisplay.TOP);
 		cardButton.setText(card.getImageLabel());
 		
 		handBox.getChildren().add(cardButton);
 		// missing event listener for the card.
-		cardButton.setOnAction((ActionEvent ae) -> {
-			switch(card.getCardType()){
-			case CLASS:
-				if(playerOne.getCharacterClass() == null){
-					ImageView classImageView = (ImageView) cardButton.getGraphic();
-					setClassCard(classImageView, true);
-					ClassCard setClass = (ClassCard)card;
-					removeFromHand(cardButton);
-					
-					playerOne.setCharacterClass(setClass.getType());
-					//ClearClass();
-					//addToClass(card);
-					playerOne.discard(card);
-					//increaseLevel();
-				}else {
-					ImageView classImageView = (ImageView) cardButton.getGraphic();
-					setClassCard(classImageView, false);
-					ClassCard setClass = (ClassCard)card;
-					removeFromHand(cardButton);
-					
-					playerOne.setCharacterClass(setClass.getType());
-					//ClearClass();
-					//addToClass(card);
-					playerOne.discard(card);
-					//increaseLevel();
-					
-				}
-				
-					
-				break;
-			case RACE:
-				if(playerOne.getRace() == null){
-					ImageView raceImageView = (ImageView) cardButton.getGraphic();
-					setRaceCard(raceImageView, true);
-					removeFromHand(cardButton);
-					
-					RaceCard setRace = (RaceCard)card;
-					playerOne.setRace(setRace.getType());
-					//addToPlay(cardButton);
-					//ClearRace();
-					//addToRace(card);
-					playerOne.discard(card);
-					//increaseLevel();
-				} else {
-					ImageView raceImageView = (ImageView) cardButton.getGraphic();
-					setRaceCard(raceImageView, true);
-					removeFromHand(cardButton);
-					
-					RaceCard setRace = (RaceCard)card;
-					playerOne.setRace(setRace.getType());
-					//addToPlay(cardButton);
-					//ClearRace();
-					//addToRace(card);
-					playerOne.discard(card);
-					//increaseLevel();
-					
-				}
-				break;
-			case MONSTER:
-				if(playerOne.getCurrentMonster() == null){
-					addToTopBox(card);
-					playerOne.setCurrentMonster(card);
-					removeFromHand(cardButton);
-					monsterCard(card);
-					}
-				break;
-			case CURSE:
-				//applyCurse();
-				break;
-			case TREASURE:
-				TreasureCard treasure = (TreasureCard) card;
-				cardButton.setUserData(treasure.getGoldPieces());
-				if(!sellTreasure(card)){
-					addToPlay(cardButton);
-				}
-				//if(playerOne.getCurrentMonster() != null){
-					//monsterCard(playerOne.getCurrentMonster());
-				//}
-				break;
-			case HELP:
-				//help card code
-				break;
+		cardButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent event) {
+            MouseButton button = event.getButton();
+            if(button==MouseButton.PRIMARY){
+            	switch(card.getCardType()){
+    			case CLASS:
+    				if(playerOne.getCharacterClass() == null){
+    					ImageView classImageView = (ImageView) cardButton.getGraphic();
+    					setClassCard(classImageView, false);
+    					ClassCard setClass = (ClassCard)card;
+    					removeFromHand(cardButton);
+    					playerOne.setCharacterClass(setClass.getType());
+    					playerOne.discard(card);
+    				}else {
+    					ImageView classImageView = (ImageView) cardButton.getGraphic();
+    					setClassCard(classImageView, false);
+    					ClassCard setClass = (ClassCard)card;
+    					removeFromHand(cardButton);
+    					playerOne.setCharacterClass(setClass.getType());
+    					playerOne.discard(card);
+    				}
+    				break;
+    			case RACE:
+    				if(playerOne.getRace() == null){
+    					ImageView raceImageView = (ImageView) cardButton.getGraphic();
+    					setRaceCard(raceImageView, true);
+    					removeFromHand(cardButton);
+    					RaceCard setRace = (RaceCard)card;
+    					playerOne.setRace(setRace.getType());
+    					playerOne.discard(card);
+    				} else {
+    					ImageView raceImageView = (ImageView) cardButton.getGraphic();
+    					setRaceCard(raceImageView, false);
+    					removeFromHand(cardButton);
+    					RaceCard setRace = (RaceCard)card;
+    					playerOne.setRace(setRace.getType());
+    					playerOne.discard(card);
+    				}
+    				break;
+    			case MONSTER:
+    				if(playerOne.getCurrentMonster() == null && !endTurn){
+    					addToTopBox(card);
+    					//updateFeedbackLabel(MONSTER_MESSAGE);
+    					playerOne.setCurrentMonster(card);
+    					removeFromHand(cardButton);
+    					playerOne.discard(card);
+    					monsterCard(card);
+    					}
+    				break;
+    			case CURSE:
+    				removeFromHand(cardButton);
+    				playerOne.discard(card);
+    				break;
+    			case TREASURE:
+    				TreasureCard treasure = (TreasureCard) card;
+    				cardButton.setUserData(treasure.getGoldPieces());
+    				if(!sellTreasure(card)){
+    					addToPlay(cardButton);
+    					playerOne.playCard(card);
+    					playerOne.discard(card);
+    				}
+    				if(playerOne.getCurrentMonster() != null){
+    					monsterCard(playerOne.getCurrentMonster());
+    				}
+    				break;
+    			case HELP:
+    				//help card code
+    				break;
+            	}
+            }else if(button==MouseButton.SECONDARY){
+            	switch(card.getCardType()){
+            		case TREASURE:
+            			TreasureCard treasure = (TreasureCard) card;
+            			playerOne.setGold(playerOne.getGold() + treasure.getGoldPieces());
+            			updateGoldPieces();
+            			playerOne.discard(card);
+            			removeFromHand(cardButton);
+            			break;
+            		case HELP:
+            		case CURSE:
+            		case MONSTER:
+            		case RACE:
+            		case CLASS:
+            			playerOne.discard(card);
+            			removeFromHand(cardButton);
+            			break;
+            	}	       			
+            }
+            }
+        });
+         
+		
+	}
+	private static Card findHighestValueCard(){
+		Card returnCard = null;
+		int max = -1;
+		for(Card c : playerOne.getPlayedCards()){
+			TreasureCard checkCard = (TreasureCard)c;
+			int value = checkCard.getGoldPieces();
+			if( value > max){
+				max = value;
+				returnCard = c;
 			}
-		});
+		}
+		
+		return returnCard;
 	}
 	
-	private static ImageView findHighestValueTreasure() {
-		ImageView[] elements = (ImageView[]) playBox.getChildren().toArray();
+	private static Label findHighestValueTreasure() {
+		ObservableList<Node> elements = playBox.getChildren();
 		int index = -1;
 		int max = -1;
-		for (int i = 0; i < elements.length; i++) {
-			if (elements[i].getUserData() != null) {
-				int value = (int) elements[i].getUserData();
+		for (int i = 0; i < elements.size(); i++) {
+			if (elements.get(i).getUserData() != null) {
+				int value = (int) elements.get(i).getUserData();
 				if (value > max) {
 					max = value;
 					index = i;
@@ -317,7 +520,7 @@ public class Main extends Application {
 		if (index == -1) {
 			return null;
 		}
-		return elements[index];
+		return (Label)playBox.getChildren().get(index);
 	}
 	
 	private static boolean sellTreasure(Card card){
@@ -352,8 +555,9 @@ public class Main extends Application {
 		ImageView cardImageView =  (ImageView)cardButton.getGraphic();
 		cardLabel.setGraphic(cardImageView);
 		cardLabel.setContentDisplay(ContentDisplay.TOP);
+		cardLabel.setUserData(cardButton.getUserData());
 		playBox.getChildren().add(cardLabel);
-		cardButton.setMouseTransparent(true);
+		
 	}
 	
 	private static void addToTopBox(Card card) {
@@ -366,31 +570,66 @@ public class Main extends Application {
 		
 		topBox.getChildren().add(cardLabel);
 	}
+	private static void removeFromTopBox(Card card){
+		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		ImageView cardImageView = new ImageView(cardImage);
+		Label cardLabel = new Label(card.getImageLabel());
+		cardLabel.setGraphic(cardImageView);
+		cardLabel.setContentDisplay(ContentDisplay.TOP);
+		
+		topBox.getChildren().remove(1);
+	}
 	
 	private static void setClassCard(ImageView imageView, boolean firstTime) {
+	
 		if (firstTime) {
 			playBox.getChildren().add(0, imageView);
 		}
 		else {
 			playBox.getChildren().set(0, imageView);
 		}
+		imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+		    @Override
+		    public void handle(MouseEvent mouseEvent) {
+		        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+		            
+		        	playerOne.discardClass();
+		        	ImageView blankImage = new ImageView();
+		        	playBox.getChildren().set(0, blankImage);
+		            
+		        }
+		    }
+		});
 	}
 	
 	private static void setRaceCard(ImageView imageView, boolean firstTime) {
+		
 		if (firstTime) {
 			playBox.getChildren().add(1, imageView);
 		}
 		else {
 			playBox.getChildren().set(1, imageView);
 		}
+		imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+		    @Override
+		    public void handle(MouseEvent mouseEvent) {
+		        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+		            
+		        	playerOne.discardRace();
+		        	ImageView blankImage = new ImageView();
+		        	playBox.getChildren().set(1, blankImage);
+		            
+		        }
+		    }
+		});
 	}
 	
 	private static void removeFromHand(Button cardButton) {
 		handBox.getChildren().remove(cardButton);
 	}
 	
-	private static void removeFromPlay(ImageView cardImage){
-		playBox.getChildren().remove(cardImage);
+	private static void removeFromPlay(Label cardLabel){
+		playBox.getChildren().remove(cardLabel);
 	}
 	
 	  // Create the HBox for the images and return it to add it to the grid.

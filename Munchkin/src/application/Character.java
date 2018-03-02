@@ -53,7 +53,7 @@ public class Character {
 	public void assignClass(CharacterClass newClass){
 		setCharacterClass(newClass);
 	}
-	public void dicardClass(){
+	public void discardClass(){
 		currentClass = null;
 	}
 	
@@ -86,7 +86,7 @@ public class Character {
 		return Randomizer.RollDice(6);
 	}
 	public void buyLevel(){
-		// Code for buying a level
+		level++;
 	}
 	public boolean runAway(int rollTarget){
 		
