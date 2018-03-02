@@ -77,6 +77,8 @@ public class Main extends Application {
 	private static String GOLD_MESSAGE = "Gold Pieces: ";
 	private static String LEVEL_MESSAGE = "Level: ";
 	private static String TOO_MANY_CARDS_MESSAGE = "You have too many cards.  Please discard or play cards until you have ";
+	private static String BUY_A_LEVEL_YES_MESSAGE = "Congratulations!  You just bought a level";
+	private static String BUY_A_LEVEL_NO_MESSAGE = "\n You need 1000 gold to buy a level! Right-click a treasure card in your hand to sell it.";
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -94,6 +96,25 @@ public class Main extends Application {
 		levelLabel = new Label(LEVEL_MESSAGE + playerOne.getLevel());
 		goldLabel = new Label(GOLD_MESSAGE + playerOne.getGold());
 		feedbackLabel = new Label(WELCOME_MESSAGE);
+		goldLabel.setOnMouseClicked(new EventHandler<MouseEvent>() {
+		    @Override
+		    public void handle(MouseEvent mouseEvent) {
+		        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+		            int playerGold = playerOne.getGold();
+		        	if( playerGold >= 1000){
+		        		updateFeedbackLabel(BUY_A_LEVEL_YES_MESSAGE);
+		        		playerOne.setGold(playerGold - 1000);
+		        		playerOne.buyLevel();
+		        		updateGoldPieces();
+		        		updateLevel();
+		        		
+		        	} else {
+		        		updateFeedbackLabel(feedbackLabel.getText() + BUY_A_LEVEL_NO_MESSAGE);
+		        	}
+		            
+		        }
+		    }
+		});
 		
 		labelsBox.getChildren().addAll(levelLabel, goldLabel, feedbackLabel);
 		
@@ -172,6 +193,13 @@ public class Main extends Application {
 			updateFeedbackLabel(WIN_MESSAGE);
 			grid.setDisable(true);
 		}
+		Card addCard;
+		for(int i = 0; i < treasure; i++)
+        {
+        	addCard = dealTreasureCard();
+        	addToHand(addCard);
+        	playerOne.addCard(addCard);
+        }
 		drawButton.setText("End Turn");
 		endTurn = true;
 	}
@@ -179,13 +207,15 @@ public class Main extends Application {
 		
 		int rollTarget = 5;
 		boolean rollAgain = false;
-		if(playerOne.getClass() != null){
+		if(playerOne.getCharacterClass() != null){
 			CLASS_ABILITY[] playerClassAbilities = playerOne.getCharacterClass().getAbilities(); 
 			for(CLASS_ABILITY a : playerClassAbilities){
 				if(a == CLASS_ABILITY.DISCARD_RUN_AWAY){
 					
 				}
 			}
+		}
+		if(playerOne.getRace() != null){
 			RACE_ABILITY[] playerRaceAbilities = playerOne.getRace().getAbilities(); 
 			for(RACE_ABILITY a : playerRaceAbilities){
 				if(a == RACE_ABILITY.EASIER_RUN_AWAY){
@@ -202,7 +232,7 @@ public class Main extends Application {
 		} else {
 			roll = playerOne.rollDie();
 			if( roll >= rollTarget){
-				String update = "ESCAPE_MESSAGE + roll";
+				String update = ESCAPE_MESSAGE + roll;
 				if(rollAgain){
 					update += " on second roll!";
 				}
@@ -303,11 +333,15 @@ public class Main extends Application {
 				updateFeedbackLabel("You rolled a " + roll + " One item removed!");
 				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
 				ObservableList<Node> elements = playBox.getChildren();
+				int index = -1;
 				for (int i = 0; i < elements.size(); i++) {
 					if (elements.get(i).getUserData() != null) {
-						removeFromPlay((Label)elements.get(i));
+						index = i;
+						break;
+						
 					}
 				}
+				removeFromPlay((Label)elements.get(index));
 			} else {
 				updateFeedbackLabel("You rolled a " + roll + " No items to lose!");
 			}
@@ -315,11 +349,15 @@ public class Main extends Application {
 				updateFeedbackLabel("You rolled a " + roll + " Two items removed!");
 				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
 				ObservableList<Node> elements = playBox.getChildren();
+				int index = -1;
 				for (int i = 0; i < elements.size(); i++) {
 					if (elements.get(i).getUserData() != null) {
-						removeFromPlay((Label)elements.get(i));
+						index = i;
+						break;
+						
 					}
 				}
+				removeFromPlay((Label)elements.get(index));
 			}
 			
 			break;
@@ -337,11 +375,21 @@ public class Main extends Application {
 		// the monster as well as the vulnerability of the monster.
 		//This method will also call the card method in the case the player has to 
 		// draw a new card.
+		int abilityAdjustment = 0;
+		if(playerOne.getCharacterClass() != null){
+			CLASS_ABILITY[] playerClassAbilities = playerOne.getCharacterClass().getAbilities(); 
+			for(CLASS_ABILITY a : playerClassAbilities){
+				if(a == CLASS_ABILITY.BERSERK){
+					abilityAdjustment = 1;
+				}
+			}
+		}
+		
 		MonsterCard fightCard = (MonsterCard)card;
 		int monster = fightCard.getLevel();
 		int player = playerOne.combatStrength();
 		updateFeedbackLabel(MONSTER_MESSAGE + " Your Strength: " + Integer.toString(player) + " Monster Strength: " + Integer.toString(monster));
-		if(monster >= player){
+		if(monster >= player + abilityAdjustment){
 			
 			
 			drawButton.setText("Run");
