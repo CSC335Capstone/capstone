@@ -41,24 +41,28 @@ public class Main extends Application {
 	private final static int IMAGE_HEIGHT = 260;
 	
 	private final static int FEEDBACK_HEIGHT = 60;
-	Label feedbackLabel;
 	
 	private static GridPane grid;
 	private static HBox handBox;
 	private static HBox playBox;
 	private static HBox topBox;
+	private static VBox labelsBox;
+	private static Label levelLabel;
+	private static Label goldLabel;
+	private static Label feedbackLabel;
 	private static Button drawButton;
+	//private static ImageView classImageView;
+	//private static ImageView raceImageView;
 	
 	//defining the players
 	private static Character playerOne;
 	
 	static int nextPlayer = 0;
 	static int highestLevel = 0;
+	static int goldPieces = 0;
 	
 	@Override
 	public void start(Stage primaryStage) {
-	
-		
 		grid = new GridPane();
 		
 		grid.setAlignment(Pos.CENTER);
@@ -67,19 +71,24 @@ public class Main extends Application {
 		grid.setPadding(new Insets(25, 25, 25, 25)); // Top Right Bottom Left (TRouBLe)
 		
 		primaryStage.setTitle("Munchkin");
+		playerOne = new Character();
 		
-		handBox = createCardsBox();
-		grid.add(handBox, 0, 2);
+		labelsBox = createLabelsBox();
+		levelLabel = new Label("Level: " + playerOne.getLevel());
+		goldLabel = new Label("Gold Pieces: " + playerOne.getGold());
+		feedbackLabel = new Label("Welcome to Munchkin!");
+		
+		labelsBox.getChildren().addAll(levelLabel, goldLabel, feedbackLabel);
+		
+		topBox = createCardsBox();
+		topBox.getChildren().addAll(labelsBox);
+		grid.add(topBox, 0, 0);
 		
 		playBox = createCardsBox();
 		grid.add(playBox, 0, 1);
 		
-		topBox = createCardsBox();
-		grid.add(topBox, 0, 0);
-	
-		
-		
-		
+		handBox = createCardsBox();
+		grid.add(handBox, 0, 2);
 		
 		drawButton = new Button("Kick Door");
 		drawButton.setOnAction((ActionEvent ae) -> {
@@ -88,6 +97,7 @@ public class Main extends Application {
 				Card showMeACard;	
 				showMeACard = dealDoorDeckCard();
 				cardType = showMeACard.getCardType();
+				
 				if(cardType == CARD_TYPE.MONSTER){
 					if(playerOne.getCurrentMonster() == null){
 					addToTopBox(showMeACard);
@@ -129,8 +139,8 @@ public class Main extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
 	private static void setupGame(){
-		playerOne = new Character();
 		Card addCard;
 		
 		for(int i = 0; i < 4; i++)
@@ -146,8 +156,8 @@ public class Main extends Application {
         	addToHand(addCard);
         	playerOne.addCard(addCard);
         }
-		
 	}
+	
 	private static void monsterCard(Card card) {
 		//monster card will have the level of the monster as well as the treasure
 		// once the monster is defeated. It will have the penalty if you can't defeat
@@ -156,19 +166,16 @@ public class Main extends Application {
 		// draw a new card.
 		MonsterCard fightCard = (MonsterCard)card;
 		
-		if(fightCard.getLevel() >= 5){
-			//drawButton.setText("Run");
+		if(fightCard.getLevel() >= playerOne.combatStrength()){
+			drawButton.setText("Run");
 		}
 		else
 		{
-			//drawButton.setText("Fight!");
-		}
-		
-		
-		
+			drawButton.setText("Fight!");
+		}	
 	}
-	private static Card dealDoorDeckCard()
-	{
+	
+	private static Card dealDoorDeckCard() {
 		CardFactory gimmeACard = new MunchkinCardFactory();
 		CARD_TYPE cardType;
 		Card returnCard;
@@ -188,60 +195,100 @@ public class Main extends Application {
 		returnCard = gimmeACard.orderCard(cardType);
 		return returnCard;
 	}
+	
 	private static Card dealTreasureCard()
 	{
 		CardFactory gimmeACard = new MunchkinCardFactory();
 		CARD_TYPE cardType = CARD_TYPE.TREASURE;
 		Card returnCard = gimmeACard.orderCard(cardType);
 		return returnCard;
-		
 	}
+	
 	private static void addToHand(Card card) {
 		// Receive a Card object, get its filename and create an Image and ImageView.
 		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
-		Button cardButton = new Button("", new ImageView(cardImage));
+		Button cardButton = new Button();
+		cardButton.setGraphic(new ImageView(cardImage));
+	
 		cardButton.setContentDisplay(ContentDisplay.TOP);
 		cardButton.setText(card.getImageLabel());
 		
 		handBox.getChildren().add(cardButton);
 		// missing event listener for the card.
-		// Allow the button to be selected and unselected.
 		cardButton.setOnAction((ActionEvent ae) -> {
 			switch(card.getCardType()){
 			case CLASS:
 				if(playerOne.getCharacterClass() == null){
-				addToPlay(cardButton);
-				ClassCard setClass = (ClassCard)card;
-				playerOne.setCharacterClass(setClass.getType());
-				//ClearClass();
-				//addToClass(card);
-				playerOne.discard(card);
+					ImageView classImageView = (ImageView) cardButton.getGraphic();
+					setClassCard(classImageView, true);
+					ClassCard setClass = (ClassCard)card;
+					removeFromHand(cardButton);
+					
+					playerOne.setCharacterClass(setClass.getType());
+					//ClearClass();
+					//addToClass(card);
+					playerOne.discard(card);
+					//increaseLevel();
+				}else {
+					ImageView classImageView = (ImageView) cardButton.getGraphic();
+					setClassCard(classImageView, false);
+					ClassCard setClass = (ClassCard)card;
+					removeFromHand(cardButton);
+					
+					playerOne.setCharacterClass(setClass.getType());
+					//ClearClass();
+					//addToClass(card);
+					playerOne.discard(card);
+					//increaseLevel();
+					
 				}
+				
+					
 				break;
 			case RACE:
 				if(playerOne.getRace() == null){
-				RaceCard setRace = (RaceCard)card;
-				playerOne.setRace(setRace.getType());
-				addToPlay(cardButton);
-				//ClearRace();
-				//addToRace(card);
-				playerOne.discard(card);
+					ImageView raceImageView = (ImageView) cardButton.getGraphic();
+					setRaceCard(raceImageView, true);
+					removeFromHand(cardButton);
+					
+					RaceCard setRace = (RaceCard)card;
+					playerOne.setRace(setRace.getType());
+					//addToPlay(cardButton);
+					//ClearRace();
+					//addToRace(card);
+					playerOne.discard(card);
+					//increaseLevel();
+				} else {
+					ImageView raceImageView = (ImageView) cardButton.getGraphic();
+					setRaceCard(raceImageView, true);
+					removeFromHand(cardButton);
+					
+					RaceCard setRace = (RaceCard)card;
+					playerOne.setRace(setRace.getType());
+					//addToPlay(cardButton);
+					//ClearRace();
+					//addToRace(card);
+					playerOne.discard(card);
+					//increaseLevel();
+					
 				}
 				break;
 			case MONSTER:
 				if(playerOne.getCurrentMonster() == null){
-				addToTopBox(card);
-				playerOne.setCurrentMonster(card);
-				removeFromHand(cardButton);
-				monsterCard(card);
-				}
+					addToTopBox(card);
+					playerOne.setCurrentMonster(card);
+					removeFromHand(cardButton);
+					monsterCard(card);
+					}
 				break;
 			case CURSE:
 				//applyCurse();
 				break;
 			case TREASURE:
+				TreasureCard treasure = (TreasureCard) card;
+				cardButton.setUserData(treasure.getGoldPieces());
 				if(!sellTreasure(card)){
-				addToPlay(cardButton);
+					addToPlay(cardButton);
 				}
 				//if(playerOne.getCurrentMonster() != null){
 					//monsterCard(playerOne.getCurrentMonster());
@@ -251,12 +298,32 @@ public class Main extends Application {
 				//help card code
 				break;
 			}
-			
 		});
 	}
+	
+	private static ImageView findHighestValueTreasure() {
+		ImageView[] elements = (ImageView[]) playBox.getChildren().toArray();
+		int index = -1;
+		int max = -1;
+		for (int i = 0; i < elements.length; i++) {
+			if (elements[i].getUserData() != null) {
+				int value = (int) elements[i].getUserData();
+				if (value > max) {
+					max = value;
+					index = i;
+				}
+			}
+		}
+		if (index == -1) {
+			return null;
+		}
+		return elements[index];
+	}
+	
 	private static boolean sellTreasure(Card card){
 		return false;
 	}
+	
 	private static boolean updateRace(Card card){
 		boolean returnVal = false;
 		if(playerOne.getRace()== null)
@@ -267,6 +334,7 @@ public class Main extends Application {
 		}
 		return returnVal;
 	}
+	
 	private static boolean updateClass(Card card){
 		boolean returnVal = false;
 		if(playerOne.getClass() == null){
@@ -279,7 +347,12 @@ public class Main extends Application {
 	
 	private static void addToPlay(Button cardButton) {
 		removeFromHand(cardButton);
-		playBox.getChildren().add(cardButton);
+		
+		Label cardLabel = new Label(cardButton.getText());
+		ImageView cardImageView =  (ImageView)cardButton.getGraphic();
+		cardLabel.setGraphic(cardImageView);
+		cardLabel.setContentDisplay(ContentDisplay.TOP);
+		playBox.getChildren().add(cardLabel);
 		cardButton.setMouseTransparent(true);
 	}
 	
@@ -294,12 +367,32 @@ public class Main extends Application {
 		topBox.getChildren().add(cardLabel);
 	}
 	
+	private static void setClassCard(ImageView imageView, boolean firstTime) {
+		if (firstTime) {
+			playBox.getChildren().add(0, imageView);
+		}
+		else {
+			playBox.getChildren().set(0, imageView);
+		}
+	}
+	
+	private static void setRaceCard(ImageView imageView, boolean firstTime) {
+		if (firstTime) {
+			playBox.getChildren().add(1, imageView);
+		}
+		else {
+			playBox.getChildren().set(1, imageView);
+		}
+	}
+	
 	private static void removeFromHand(Button cardButton) {
 		handBox.getChildren().remove(cardButton);
 	}
-	private static void removeFromPlay(Button cardButton){
-		playBox.getChildren().remove(cardButton);
+	
+	private static void removeFromPlay(ImageView cardImage){
+		playBox.getChildren().remove(cardImage);
 	}
+	
 	  // Create the HBox for the images and return it to add it to the grid.
     private static HBox createCardsBox() {
     	HBox hbImageContainer = new HBox();        
@@ -309,5 +402,26 @@ public class Main extends Application {
 		hbImageContainer.setAlignment(Pos.CENTER);  // Set the alignment of the HBox
 		
 		return hbImageContainer;
+    }
+    
+    private static VBox createLabelsBox() {
+    	VBox labelsContainer = new VBox();
+    	labelsContainer.setPrefHeight(IMAGE_HEIGHT + SPACING);
+    	labelsContainer.setSpacing(SPACING);
+    	labelsContainer.setAlignment(Pos.TOP_LEFT);
+    	
+    	return labelsContainer; 
+    }
+    
+    private static void updateLevel() {
+    	levelLabel.setText("Level: " + playerOne.getLevel());
+    }
+    
+    private static void updateGoldPieces() {
+    	goldLabel.setText("Gold pieces: " + playerOne.getGold());
+    }
+    
+    private static void updateFeedbackLabel(String feedback) {
+    	feedbackLabel.setText(feedback);
     }
 }
