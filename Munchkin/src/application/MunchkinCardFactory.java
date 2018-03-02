@@ -2,25 +2,25 @@ package application;
 
 public class MunchkinCardFactory extends CardFactory {
 	
-	public Card createCard(String costumeName){
+	public Card createCard(CARD_TYPE cardType){
 		Card returnCard;
-		switch(costumeName){
-		case "Class":
+		switch(cardType){
+		case CLASS:
 			returnCard = new ClassCard();
 			break;
-		case "Race":
+		case RACE:
 			returnCard = new RaceCard();
 			break;
-		case "Curse":
+		case CURSE:
 			returnCard = new CurseCard();
 			break;
-		case "Treasure":
+		case TREASURE:
 			returnCard = new TreasureCard();
 			break;
-		case "Monster":
+		case MONSTER:
 			returnCard = new MonsterCard();
 			break;
-		case "Help":
+		case HELP:
 			returnCard = new HelpCard();
 			break;
 		default:

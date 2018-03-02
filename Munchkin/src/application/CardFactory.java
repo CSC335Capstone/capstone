@@ -1,12 +1,12 @@
 package application;
 
 public abstract class CardFactory {
-	public Card orderCard(String cardName){
+	public Card orderCard(CARD_TYPE cardType){
 		
 		Card returnCard;
-		returnCard = createCard(cardName);
+		returnCard = createCard(cardType);
 		return returnCard;
 	}
-	protected abstract Card createCard(String cardName);
+	protected abstract Card createCard(CARD_TYPE cardType);
 
 }

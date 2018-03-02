@@ -2,27 +2,28 @@ package application;
 
 public class RaceCard extends Card{
 	// Attributes
-	private RACES type;
+	private Race type;
 	
 	// Getters and Setters
-	public RACES getType(){return type;}
-	public void setType(RACES newType){type = newType;}
+	public Race getType(){return type;}
+	public void setType(Race newType){type = newType;}
 	
 	public RaceCard()
 	{
+		super.setCardType(CARD_TYPE.RACE);
 		int switchValue = Randomizer.RollDice(3);
 		switch(switchValue){
 		case 1:
-			type = RACES.DWARF;
+			type = new Dwarf();
 			super.setImageFile(IMAGE_PATH + "dwarf.jpg");
 			break;
 		case 2:
-			type = RACES.ELF;
+			type = new Elf();
 			super.setImageFile(IMAGE_PATH + "elf.jpg");
 			break;
 		case 3:
 			super.setImageFile(IMAGE_PATH + "halfling.jpg");
-			type = RACES.HALFLING;
+			type = new Halfling();
 			break;
 		}
 	}

@@ -13,8 +13,10 @@ public class TreasureCard extends Card{
 	public void setCombatAdvantage(int newCombatAdvantage){combatAdvantage = newCombatAdvantage;}
 	
 	public TreasureCard(){
-		goldPieces = Randomizer.RollDice(301) + 99;
+		super.setCardType(CARD_TYPE.TREASURE);
+		goldPieces = Randomizer.RollDice(4) * 100;
 		combatAdvantage = Randomizer.RollDice(5);
 		super.setImageFile(IMAGE_PATH + "genericTreasure.jpg");
+		super.setImageLabel("STR: " + Integer.toString(combatAdvantage) + "  Gold: " + Integer.toString(goldPieces));
 	}
 }

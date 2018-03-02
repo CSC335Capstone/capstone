@@ -10,16 +10,18 @@ public class CurseCard extends Card{
 	public void setType(CURSES newType){type = newType;}
 	
 	public CurseCard(){
-		
+		super.setCardType(CARD_TYPE.CURSE);
 		int switchValue = Randomizer.RollDice(10);
 		switch(switchValue){
 		case 1:
 			type = CURSES.LOSE_ONE_ITEM;
 			super.setImageFile(IMAGE_PATH + "genericCurse.jpg");
+			super.setImageLabel("Lose one item");
 			break;
 		case 2:
 			type = CURSES.LOSE_TWO_ITEMS;
 			super.setImageFile(IMAGE_PATH + "genericCurse.jpg");
+			super.setImageLabel("Lose two items");
 			break;
 		case 3:
 			type = CURSES.LOSE_RACE_BECOME_HUMAN;
