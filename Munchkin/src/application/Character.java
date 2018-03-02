@@ -1,6 +1,7 @@
 package application;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Character {
@@ -46,14 +47,16 @@ public class Character {
 	public void assignRace(Race newRace){
 		setRace(race);
 	}
+	public void discardRace(){
+		race = null;
+	}
 	public void assignClass(CharacterClass newClass){
 		setCharacterClass(newClass);
 	}
-	public Card takeCard(Deck deck){
-		Card returnCard = deck.draw();
-		
-		return returnCard;
+	public void dicardClass(){
+		currentClass = null;
 	}
+	
 	public void addCard(Card card){
 		cards.add(card);
 	}
@@ -63,29 +66,31 @@ public class Character {
 	public void playCard(Card card){
 		playedCards.add(card);
 	}
+	public void discardPlayCard(Card card){
+		playedCards.remove(card);
+	}
 	public int combatStrength()
 	{
 		int combatStrength = level;
 		
 		// Code to calculate combat strength
 		for(Card c : playedCards){
-			
-			if(c.getCardType() == CARD_TYPE.TREASURE){
-				TreasureCard strengthCard = (TreasureCard)c;
-				combatStrength += strengthCard.getCombatAdvantage();
-			}
+			TreasureCard strengthCard = (TreasureCard) c;
+			combatStrength += strengthCard.getCombatAdvantage();
 		}
 		return combatStrength;
 		
 	}
+
 	public int rollDie(){
 		return Randomizer.RollDice(6);
 	}
 	public void buyLevel(){
 		// Code for buying a level
 	}
-	public boolean runAway(){
-		if(rollDie()>4){
+	public boolean runAway(int rollTarget){
+		
+		if(rollDie()>= rollTarget){
 			return true;
 		} else {
 			return false;

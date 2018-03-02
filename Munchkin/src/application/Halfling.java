@@ -2,12 +2,9 @@ package application;
 
 public class Halfling extends Race {
 	
-	public void sellItem(TreasureCard sellCard){
-		//stub
-	}
-	public boolean bonusRunAway(){
-		//stub
-		return true;
+	public Halfling(){
+		super.setType(RACES.HALFLING);
+		super.setAbilities(new RACE_ABILITY[]{RACE_ABILITY.DOUBLE_PRICE_ITEM, RACE_ABILITY.EXTRA_RUN_AWAY});
 	}
 
 }

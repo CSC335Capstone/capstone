@@ -2,10 +2,9 @@ package application;
 
 public class Dwarf extends Race {
 	
-	public Card holdExtraCard(){
-		Card returnCard = null;
-		return returnCard;
-				
+	
+	public Dwarf(){
+		super.setType(RACES.DWARF);
+		super.setAbilities(new RACE_ABILITY[]{RACE_ABILITY.CARRY_EXTRA_CARD});
 	}
-
 }

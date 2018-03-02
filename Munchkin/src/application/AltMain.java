@@ -29,19 +29,19 @@ public class AltMain {
 		int highestLevel = 0;
 		
 		//new deck to use for the game. Class would be implemented later
-		Deck deck = new Deck();
+		//Deck deck = new Deck();
 		
 		//keep playing until an individual player reaches level 10 then exit loop
 		// as the game would end.
-		looper(deck);
+		looper();
 	}
 
 	//method will be in charge of the loop while the game is active, until someone
 	// reaches level 10
-	private static void looper(Deck deck) {
+	private static void looper() {
 		
 		//issue cards to initialize the game
-		playerOne.setCards(deck.getCards());
+		
 		
 		//keep playing until an individual player reaches level 10 then exit loop
 		// as the game would end.

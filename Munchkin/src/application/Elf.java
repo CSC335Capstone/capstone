@@ -2,9 +2,8 @@ package application;
 
 public class Elf extends Race {
 	
-	public boolean easierRunAway(){
-		//stub
-		return true;
+	public Elf(){
+		super.setType(RACES.ELF);
+		super.setAbilities(new RACE_ABILITY[]{RACE_ABILITY.EASIER_RUN_AWAY});
 	}
-
 }
