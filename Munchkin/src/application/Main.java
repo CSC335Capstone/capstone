@@ -331,6 +331,7 @@ public class Main extends Application {
 			} else {
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No items to lose!");
 			}
+			break;
 		case LOSE_TWO_ITEMS:
 			if(playerOne.getPlayedCards().size()>0){
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " One item removed!");
@@ -369,7 +370,8 @@ public class Main extends Application {
 			if(playerOne.getRace() != null){
 				
 				playerOne.discardRace();
-				setRaceCard(null,false);
+				ImageView blankView = new ImageView();
+				setRaceCard(blankView,false);
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You lose your race!");
 			} else {
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No race to lose.");
@@ -391,7 +393,8 @@ public class Main extends Application {
 		case LOSE_CLASS:
 			if(playerOne.getCharacterClass() != null){
 				playerOne.discardClass();
-				setClassCard(null,false);
+				ImageView blankView = new ImageView();
+				setClassCard(blankView,false);
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You lose your class!");
 			} else {
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No class to lose.");
