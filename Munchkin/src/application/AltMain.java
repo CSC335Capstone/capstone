@@ -69,10 +69,7 @@ public class AltMain {
 		
 	}
 	
-	private static void curseCard() {
-		//this method will be used when there is a curse card that has been drawn
-		// it will place the curse on the certain player that drew the card.
-	}
+	
 
 	private static void treasureCard() {
 		//treasure card method will be used to see if the user wants to use the

@@ -65,6 +65,8 @@ public class Main extends Application {
 	static int highestLevel = 0;
 	static int goldPieces = 0;
 	static boolean endTurn = false;
+	static boolean helpCardPlayed = false;
+	static boolean soldForDouble = false;
 	static int doorClicks = 0;
 	
 	private static String WELCOME_MESSAGE = "Welcome to Munchkin! You may play as many treasure cards as you like.  You may only have one race" + 
@@ -79,7 +81,9 @@ public class Main extends Application {
 	private static String TOO_MANY_CARDS_MESSAGE = "You have too many cards.  Please discard or play cards until you have ";
 	private static String BUY_A_LEVEL_YES_MESSAGE = "Congratulations!  You just bought a level";
 	private static String BUY_A_LEVEL_NO_MESSAGE = "\n You need 1000 gold to buy a level! Right-click a treasure card in your hand to sell it.";
-	
+	private static String HELP_CARD_MESSAGE = "Help card played.  Next treasure card will have double strength.";
+	private static String CURSE_CARD_MESSAGE = "Cursed! Click the curse card to discard it.";
+	private static String SOLD_ITEM_MESSAGE = "Sold an item";
 	@Override
 	public void start(Stage primaryStage) {
 		grid = new GridPane();
@@ -107,6 +111,10 @@ public class Main extends Application {
 		        		playerOne.buyLevel();
 		        		updateGoldPieces();
 		        		updateLevel();
+		        		if(playerOne.getLevel() >= 10){
+		        			updateFeedbackLabel(WIN_MESSAGE);
+		        			grid.setDisable(true);
+		        		}
 		        		
 		        	} else {
 		        		updateFeedbackLabel(feedbackLabel.getText() + BUY_A_LEVEL_NO_MESSAGE);
@@ -207,6 +215,7 @@ public class Main extends Application {
 		
 		int rollTarget = 5;
 		boolean rollAgain = false;
+		
 		if(playerOne.getCharacterClass() != null){
 			CLASS_ABILITY[] playerClassAbilities = playerOne.getCharacterClass().getAbilities(); 
 			for(CLASS_ABILITY a : playerClassAbilities){
@@ -215,6 +224,7 @@ public class Main extends Application {
 				}
 			}
 		}
+		
 		if(playerOne.getRace() != null){
 			RACE_ABILITY[] playerRaceAbilities = playerOne.getRace().getAbilities(); 
 			for(RACE_ABILITY a : playerRaceAbilities){
@@ -270,6 +280,7 @@ public class Main extends Application {
 			//Apply CURSE - code below will change
 			addToHand(showMeACard);
 			playerOne.addCard(showMeACard);
+			curseCard(showMeACard);
 		} else {
 			addToHand(showMeACard);
 			playerOne.addCard(showMeACard);
@@ -298,6 +309,108 @@ public class Main extends Application {
         	playerOne.addCard(addCard);
         }
 	}
+	private static void curseCard(Card curseCard) {
+		//this method will be used when there is a curse card that has been drawn
+		// It will place the curse on the certain player that drew the card.
+		CurseCard processCurse = (CurseCard)curseCard;
+		
+		switch(processCurse.getType()){
+		case LOSE_ONE_ITEM:
+			if(playerOne.getPlayedCards().size()>0){
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " One item removed!");
+				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+				ObservableList<Node> elements = playBox.getChildren();
+					int index = -1;
+					for (int i = 0; i < elements.size(); i++) {
+						if (elements.get(i).getUserData() != null) {
+							index = i;
+							break;
+						}
+					}
+				removeFromPlay((Label)elements.get(index));
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No items to lose!");
+			}
+		case LOSE_TWO_ITEMS:
+			if(playerOne.getPlayedCards().size()>0){
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " One item removed!");
+				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+				ObservableList<Node> elements = playBox.getChildren();
+					int index = -1;
+					for (int i = 0; i < elements.size(); i++) {
+						if (elements.get(i).getUserData() != null) {
+							index = i;
+							break;
+							
+						}
+					}
+				
+				removeFromPlay((Label)elements.get(index));
+				
+				if(playerOne.getPlayedCards().size()>0){
+					updateFeedbackLabel(CURSE_CARD_MESSAGE + " Two items removed!");
+					playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+					elements = playBox.getChildren();
+					index = -1;
+					for (int i = 0; i < elements.size(); i++) {
+						if (elements.get(i).getUserData() != null) {
+							index = i;
+							break;
+							
+						}
+					}
+					removeFromPlay((Label)elements.get(index));
+				}
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No items to lose!");
+			}
+			break;
+		case LOSE_RACE_BECOME_HUMAN:
+			if(playerOne.getRace() != null){
+				
+				playerOne.discardRace();
+				setRaceCard(null,false);
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You lose your race!");
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No race to lose.");
+			}
+			break;
+		case LOSE_RACE_DRAW_NEW_RACE:
+			if(playerOne.getRace() != null){
+				Card newRace = dealRaceCard();
+				Image cardImage = new Image(newRace.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+				ImageView raceImageView = new ImageView(cardImage);
+				setRaceCard(raceImageView, false);
+				RaceCard setRace = (RaceCard)newRace;
+				playerOne.setRace(setRace.getType());
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + "Race changed to " + setRace.getType().toString());
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No race to lose.");
+			}
+			break;
+		case LOSE_CLASS:
+			if(playerOne.getCharacterClass() != null){
+				playerOne.discardClass();
+				setClassCard(null,false);
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You lose your class!");
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No class to lose.");
+			}
+			break;
+		case LOSE_LEVEL:
+			if(playerOne.getLevel()> 1){
+				playerOne.setLevel(playerOne.getLevel() - 1);
+				updateLevel();
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You lost a level!");
+			} else {
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + " You can't lose a level.");
+			}
+			
+			break;
+		}
+		
+	}
+	
 	private static void doBadStuff(int roll){
 		MonsterCard badCard = (MonsterCard)playerOne.getCurrentMonster();
 		switch(badCard.getPenalty()){
@@ -333,33 +446,34 @@ public class Main extends Application {
 				updateFeedbackLabel("You rolled a " + roll + " One item removed!");
 				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
 				ObservableList<Node> elements = playBox.getChildren();
-				int index = -1;
-				for (int i = 0; i < elements.size(); i++) {
-					if (elements.get(i).getUserData() != null) {
-						index = i;
-						break;
-						
+					int index = -1;
+					for (int i = 0; i < elements.size(); i++) {
+						if (elements.get(i).getUserData() != null) {
+							index = i;
+							break;
+							
+						}
 					}
-				}
+				
 				removeFromPlay((Label)elements.get(index));
+				if(playerOne.getPlayedCards().size()>0){
+					updateFeedbackLabel("You rolled a " + roll + " Two items removed!");
+					playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
+					elements = playBox.getChildren();
+					index = -1;
+					for (int i = 0; i < elements.size(); i++) {
+						if (elements.get(i).getUserData() != null) {
+							index = i;
+							break;
+							
+						}
+					}
+				
+					removeFromPlay((Label)elements.get(index));
+				}
 			} else {
 				updateFeedbackLabel("You rolled a " + roll + " No items to lose!");
 			}
-			if(playerOne.getPlayedCards().size()>0){
-				updateFeedbackLabel("You rolled a " + roll + " Two items removed!");
-				playerOne.discardPlayCard(playerOne.getPlayedCards().get(0));
-				ObservableList<Node> elements = playBox.getChildren();
-				int index = -1;
-				for (int i = 0; i < elements.size(); i++) {
-					if (elements.get(i).getUserData() != null) {
-						index = i;
-						break;
-						
-					}
-				}
-				removeFromPlay((Label)elements.get(index));
-			}
-			
 			break;
 		case DEATH:
 			updateFeedbackLabel("You rolled a " + roll + " YOU DIED!!! GAME OVER!!");
@@ -426,6 +540,13 @@ public class Main extends Application {
 	{
 		CardFactory gimmeACard = new MunchkinCardFactory();
 		CARD_TYPE cardType = CARD_TYPE.TREASURE;
+		Card returnCard = gimmeACard.orderCard(cardType);
+		return returnCard;
+	}
+	private static Card dealRaceCard()
+	{
+		CardFactory gimmeACard = new MunchkinCardFactory();
+		CARD_TYPE cardType = CARD_TYPE.RACE;
 		Card returnCard = gimmeACard.orderCard(cardType);
 		return returnCard;
 	}
@@ -499,28 +620,54 @@ public class Main extends Application {
     				break;
     			case TREASURE:
     				TreasureCard treasure = (TreasureCard) card;
-    				cardButton.setUserData(treasure.getGoldPieces());
-    				if(!sellTreasure(card)){
-    					addToPlay(cardButton);
-    					playerOne.playCard(card);
-    					playerOne.discard(card);
+    				if(helpCardPlayed){
+    					treasure.setCombatAdvantage(treasure.getCombatAdvantage() * 2);
+    					cardButton.setText("STR: " + treasure.getCombatAdvantage() + "  Gold: " + treasure.getGoldPieces());
+    					helpCardPlayed = false;
     				}
+    				cardButton.setUserData(treasure.getGoldPieces());
+    				addToPlay(cardButton);
+    				playerOne.playCard(treasure);
+    				playerOne.discard(card);
+    				
     				if(playerOne.getCurrentMonster() != null){
     					monsterCard(playerOne.getCurrentMonster());
     				}
     				break;
     			case HELP:
-    				//help card code
+    				helpCardPlayed = true;
+    				removeFromHand(cardButton);
+    				playerOne.discard(card);
+    				updateFeedbackLabel(HELP_CARD_MESSAGE);
     				break;
             	}
             }else if(button==MouseButton.SECONDARY){
             	switch(card.getCardType()){
             		case TREASURE:
-            			TreasureCard treasure = (TreasureCard) card;
-            			playerOne.setGold(playerOne.getGold() + treasure.getGoldPieces());
-            			updateGoldPieces();
-            			playerOne.discard(card);
-            			removeFromHand(cardButton);
+            			if(playerOne.getCurrentMonster() == null){
+	            			boolean doublePrice = false;
+	            			TreasureCard treasure = (TreasureCard) card;
+	            			if(playerOne.getRace() != null){
+	            				RACE_ABILITY[] playerRaceAbilities = playerOne.getRace().getAbilities(); 
+	            				for(RACE_ABILITY a : playerRaceAbilities){
+	            					if(a == RACE_ABILITY.DOUBLE_PRICE_ITEM){
+	            						doublePrice = true;
+	            					}
+	            				}
+	            			}
+	            			int addedGold = treasure.getGoldPieces();
+	            			if(doublePrice & !soldForDouble){
+	            				
+	            				playerOne.setGold(playerOne.getGold() + (addedGold * 2));
+	            				updateFeedbackLabel(SOLD_ITEM_MESSAGE + " for double price!");
+	            			} else {
+	            				playerOne.setGold(playerOne.getGold() + addedGold);
+	            				updateFeedbackLabel(SOLD_ITEM_MESSAGE + " for " + addedGold + " gold pieces.");
+	            			}
+	            			updateGoldPieces();
+	            			playerOne.discard(card);
+	            			removeFromHand(cardButton);
+            			}
             			break;
             		case HELP:
             		case CURSE:
@@ -571,30 +718,6 @@ public class Main extends Application {
 		return (Label)playBox.getChildren().get(index);
 	}
 	
-	private static boolean sellTreasure(Card card){
-		return false;
-	}
-	
-	private static boolean updateRace(Card card){
-		boolean returnVal = false;
-		if(playerOne.getRace()== null)
-		{
-			returnVal = true;
-		}else{
-			//Confirm user wants to replace race
-		}
-		return returnVal;
-	}
-	
-	private static boolean updateClass(Card card){
-		boolean returnVal = false;
-		if(playerOne.getClass() == null){
-			returnVal = true;
-		}else {
-			// Confirm user wants to replace class
-		}
-		return returnVal;
-	}
 	
 	private static void addToPlay(Button cardButton) {
 		removeFromHand(cardButton);
@@ -630,24 +753,22 @@ public class Main extends Application {
 	
 	private static void setClassCard(ImageView imageView, boolean firstTime) {
 	
+		imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            updateFeedbackLabel("CLASS CLICKED");
+        	playerOne.discardClass();
+        	ImageView blankImage = new ImageView();
+        	playBox.getChildren().set(0, blankImage);
+            
+});
 		if (firstTime) {
 			playBox.getChildren().add(0, imageView);
 		}
 		else {
 			playBox.getChildren().set(0, imageView);
 		}
-		imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-		    @Override
-		    public void handle(MouseEvent mouseEvent) {
-		        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
-		            
-		        	playerOne.discardClass();
-		        	ImageView blankImage = new ImageView();
-		        	playBox.getChildren().set(0, blankImage);
-		            
-		        }
-		    }
-		});
+		
+		   
+		
 	}
 	
 	private static void setRaceCard(ImageView imageView, boolean firstTime) {
