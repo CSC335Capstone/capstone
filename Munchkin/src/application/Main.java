@@ -71,8 +71,12 @@ public class Main extends Application {
 	static boolean soldForDouble = false;
 	static int doorClicks = 0;
 	
-	private static String WELCOME_MESSAGE = "Welcome to Munchkin! You may play as many treasure cards as you like.  You may only have one race" + 
-									" \nor class at a time so if you play another it will replace the existing one.  Play or draw a monster to fight.";
+	private static String WELCOME_MESSAGE = "Welcome to Munchkin! Play a card by clicking on it. Right click to discard or " + 
+											"\nto sell a treasure card.  Curse cards in your hand can only be discarded.  A" +
+											"\ncurse will apply automatically when drawn.  Click the gold label to buy a level." +
+											"\nYou cannot buy a level or sell a card when a monster is up.  Playing race card" +
+											"\nor class card when you already have one will replace it. Play a card or kick the" +
+											"\ndoor to begin.  Click on the level label to display the instructions again.";
 	private static String MONSTER_MESSAGE = "Monster drawn!";
 	private static String DEFEAT_MONSTER_MESSAGE = "Congratulations! You have defeated the monster and gained a level and its treasure!";
 	private static String WIN_MESSAGE = "YOU HAVE WON!!";
@@ -126,6 +130,14 @@ public class Main extends Application {
 		        }
 		    }
 		});
+		levelLabel.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent mouseEvent) {
+	        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+		       updateFeedbackLabel(WELCOME_MESSAGE);  
+	        }
+	    }
+	});
 		
 		labelsBox.getChildren().addAll(levelLabel, goldLabel, feedbackLabel);
 		
@@ -394,7 +406,7 @@ public class Main extends Application {
 				setRaceCard(raceImageView, false);
 				RaceCard setRace = (RaceCard)newRace;
 				playerOne.setRace(setRace.getType());
-				updateFeedbackLabel(CURSE_CARD_MESSAGE + "Race changed to " + setRace.getType().toString());
+				updateFeedbackLabel(CURSE_CARD_MESSAGE + "Race changed!");
 			} else {
 				updateFeedbackLabel(CURSE_CARD_MESSAGE + " No race to lose.");
 			}
