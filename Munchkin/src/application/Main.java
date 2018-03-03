@@ -70,7 +70,7 @@ public class Main extends Application {
 	static int doorClicks = 0;
 	
 	private static String WELCOME_MESSAGE = "Welcome to Munchkin! You may play as many treasure cards as you like.  You may only have one race" + 
-									" or class at a time so if you play another it will replace the existing one.  Play or draw a monster to fight.";
+									" \nor class at a time so if you play another it will replace the existing one.  Play or draw a monster to fight.";
 	private static String MONSTER_MESSAGE = "Monster drawn!";
 	private static String DEFEAT_MONSTER_MESSAGE = "Congratulations! You have defeated the monster and gained a level and its treasure!";
 	private static String WIN_MESSAGE = "YOU HAVE WON!!";
@@ -104,22 +104,23 @@ public class Main extends Application {
 		    @Override
 		    public void handle(MouseEvent mouseEvent) {
 		        if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
-		            int playerGold = playerOne.getGold();
-		        	if( playerGold >= 1000){
-		        		updateFeedbackLabel(BUY_A_LEVEL_YES_MESSAGE);
-		        		playerOne.setGold(playerGold - 1000);
-		        		playerOne.buyLevel();
-		        		updateGoldPieces();
-		        		updateLevel();
-		        		if(playerOne.getLevel() >= 10){
-		        			updateFeedbackLabel(WIN_MESSAGE);
-		        			grid.setDisable(true);
-		        		}
-		        		
-		        	} else {
-		        		updateFeedbackLabel(feedbackLabel.getText() + BUY_A_LEVEL_NO_MESSAGE);
-		        	}
-		            
+			        if(playerOne.getCurrentMonster() == null){
+			            int playerGold = playerOne.getGold();
+			        	if( playerGold >= 1000){
+			        		updateFeedbackLabel(BUY_A_LEVEL_YES_MESSAGE);
+			        		playerOne.setGold(playerGold - 1000);
+			        		playerOne.buyLevel();
+			        		updateGoldPieces();
+			        		updateLevel();
+			        		if(playerOne.getLevel() >= 10){
+			        			updateFeedbackLabel(WIN_MESSAGE);
+			        			grid.setDisable(true);
+			        		}
+			        		
+			        	} else {
+			        		updateFeedbackLabel(feedbackLabel.getText() + BUY_A_LEVEL_NO_MESSAGE);
+			        	}
+		        	}		            
 		        }
 		    }
 		});
@@ -180,6 +181,7 @@ public class Main extends Application {
 		if(playerOne.getCards().size() <= maxSize){
 			doorClicks = 0;
 			endTurn = false;
+			soldForDouble = false;
 			updateFeedbackLabel(NEW_TURN_MESSAGE);
 			drawButton.setText("Kick Door");
 		} else {
@@ -663,9 +665,11 @@ public class Main extends Application {
 	            				
 	            				playerOne.setGold(playerOne.getGold() + (addedGold * 2));
 	            				updateFeedbackLabel(SOLD_ITEM_MESSAGE + " for double price!");
+	            				soldForDouble = true;
 	            			} else {
 	            				playerOne.setGold(playerOne.getGold() + addedGold);
 	            				updateFeedbackLabel(SOLD_ITEM_MESSAGE + " for " + addedGold + " gold pieces.");
+	            				
 	            			}
 	            			updateGoldPieces();
 	            			playerOne.discard(card);
