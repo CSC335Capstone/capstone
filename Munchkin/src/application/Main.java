@@ -1,5 +1,7 @@
 package application;
 
+import java.io.FileInputStream;
+
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -382,7 +384,12 @@ public class Main extends Application {
 		case LOSE_RACE_DRAW_NEW_RACE:
 			if(playerOne.getRace() != null){
 				Card newRace = dealRaceCard();
-				Image cardImage = new Image(newRace.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+				Image cardImage = null;
+				try{
+					cardImage = new Image(new FileInputStream(newRace.getImageFile()), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+				}catch(Exception e){
+					
+				}
 				ImageView raceImageView = new ImageView(cardImage);
 				setRaceCard(raceImageView, false);
 				RaceCard setRace = (RaceCard)newRace;
@@ -412,6 +419,8 @@ public class Main extends Application {
 			}
 			
 			break;
+			default:
+				break;
 		}
 		
 	}
@@ -558,7 +567,12 @@ public class Main extends Application {
 	
 	private static void addToHand(Card card) {
 		// Receive a Card object, get its filename and create an Image and ImageView.
-		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		Image cardImage = null;
+		try{
+			cardImage = new Image(new FileInputStream(card.getImageFile()), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		} catch(Exception e){
+			
+		}
 		Button cardButton = new Button();
 		cardButton.setGraphic(new ImageView(cardImage));
 		
@@ -740,7 +754,12 @@ public class Main extends Application {
 	
 	private static void addToTopBox(Card card) {
 		// Receive a Card object, get its filename and create an Image and ImageView.
-		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		Image cardImage = null;
+		try{
+			cardImage = new Image(new FileInputStream(card.getImageFile()), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		}catch (Exception e){
+			
+		}
 		ImageView cardImageView = new ImageView(cardImage);
 		Label cardLabel = new Label(card.getImageLabel());
 		cardLabel.setGraphic(cardImageView);
@@ -749,7 +768,12 @@ public class Main extends Application {
 		topBox.getChildren().add(cardLabel);
 	}
 	private static void removeFromTopBox(Card card){
-		Image cardImage = new Image(card.getImageFile(), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		Image cardImage = null;
+		try{
+			cardImage = new Image(new FileInputStream(card.getImageFile()), IMAGE_WIDTH, IMAGE_HEIGHT, true, true);
+		} catch (Exception e){
+			
+		}
 		ImageView cardImageView = new ImageView(cardImage);
 		Label cardLabel = new Label(card.getImageLabel());
 		cardLabel.setGraphic(cardImageView);
